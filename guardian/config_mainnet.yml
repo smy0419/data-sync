@@ -1,0 +1,27 @@
+# Develop Environment
+
+# Project Name
+project_name: guardian
+
+# Log Directory
+log_dir: /var/log
+
+# Block Chain Configuration
+block_chain_rpc: ${Your Chain RPC Host:IP}
+
+# MongoDB Configuration
+mongodb_url: mongodb://${host}:${port}
+mongodb_db: ${db_name}
+mongodb_user: ${db_user}
+mongodb_password: ${db_password}
+
+# MySQL Configuration
+mysql: ${user}:${password}@(${host:port})/${database}?charset=utf8mb4
+show_sql: false
+
+# DingTalk configuration
+ding_talk_url: ${Your DingTalk URL}
+ding_talk_secret: ${Your DingTalk Secret Key}
+at_mobiles:
+  - ${Your Mobile1}
+  - ${Your Mobile2}

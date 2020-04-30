@@ -1,0 +1,17 @@
+# MainNet Environment
+
+# Project Name
+project_name: faucet
+
+# Listen Port
+port: :8890
+
+# Gin Run Mod
+gin_mode: release
+
+# Log Directory
+log_dir: /var/log
+
+# Block Chain Configuration
+block_chain_rpc: ${Your Chain RPC Host:IP}
+faucet_private_key: ${Your Minning Private Key}

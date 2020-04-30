@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "c4K+xR8x9M38CsC64jmFptMjN4g=",
+			"path": "github.com/robfig/cron",
+			"revision": "61d93e07d1be270591d43ede700aa3ae69a2326f",
+			"revisionTime": "2019-06-16T12:43:56Z"
+		}
+	],
+	"rootPath": "gitlab.flow.so/vvs/vvs-center/guardian"
+}

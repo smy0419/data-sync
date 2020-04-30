@@ -1,0 +1,97 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "/wseY6oofJqnvYP5hoMYSGCIU9A=",
+			"path": "github.com/gin-contrib/cors",
+			"revision": "5f50d4fb4e0306dcacc6f8e9bea2dcee784dbbdf",
+			"revisionTime": "2019-05-09T02:00:32Z"
+		},
+		{
+			"checksumSHA1": "qlEzrgKgIkh7y0ePm9BNo1cNdXo=",
+			"path": "github.com/gin-contrib/sse",
+			"revision": "54d8467d122d380a14768b6b4e5cd7ca4755938f",
+			"revisionTime": "2019-06-02T15:02:53Z"
+		},
+		{
+			"checksumSHA1": "DbMrtvSsjy/ATEfTkJZAuU3lHXY=",
+			"path": "github.com/gin-gonic/gin",
+			"revision": "09a3650c97ca7ef3a542d428a9fb2c8da8c18002",
+			"revisionTime": "2019-06-18T11:49:10Z"
+		},
+		{
+			"checksumSHA1": "92+88KRCecT1WXcl1n/ydReNcEg=",
+			"path": "github.com/gin-gonic/gin/binding",
+			"revision": "09a3650c97ca7ef3a542d428a9fb2c8da8c18002",
+			"revisionTime": "2019-06-18T11:49:10Z"
+		},
+		{
+			"checksumSHA1": "rST0S8cuVbM57VmJhWXhKNUkKTc=",
+			"path": "github.com/gin-gonic/gin/internal/json",
+			"revision": "09a3650c97ca7ef3a542d428a9fb2c8da8c18002",
+			"revisionTime": "2019-06-18T11:49:10Z"
+		},
+		{
+			"checksumSHA1": "4XLWNQHHCyHJCCROC4UXSn7U1OM=",
+			"path": "github.com/gin-gonic/gin/render",
+			"revision": "09a3650c97ca7ef3a542d428a9fb2c8da8c18002",
+			"revisionTime": "2019-06-18T11:49:10Z"
+		},
+		{
+			"checksumSHA1": "CGj8VcI/CpzxaNqlqpEVM7qElD4=",
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "b285ee9cfc6c881bb20c0d8dc73370ea9b9ec90f",
+			"revisionTime": "2019-05-17T06:12:10Z"
+		},
+		{
+			"checksumSHA1": "4DgEcOv2o9NyZAHCbdS76mToqpU=",
+			"path": "github.com/json-iterator/go",
+			"revision": "27518f6661eba504be5a7a9a9f6d9460d892ade3",
+			"revisionTime": "2019-06-21T16:12:01Z"
+		},
+		{
+			"checksumSHA1": "74gCzvJiE6bXX3i4vIVCYhffDHc=",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "1311e847b0cb909da63b5fecfb5370aa66236465",
+			"revisionTime": "2019-05-22T01:25:13Z"
+		},
+		{
+			"checksumSHA1": "ZTcgWKWHsrX0RXYVXn5Xeb8Q0go=",
+			"path": "github.com/modern-go/concurrent",
+			"revision": "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94",
+			"revisionTime": "2018-03-06T01:26:44Z"
+		},
+		{
+			"checksumSHA1": "qvH48wzTIV3QKSDqI0dLFtVjaDI=",
+			"path": "github.com/modern-go/reflect2",
+			"revision": "94122c33edd36123c84d5368cfb2b69df93a0ec8",
+			"revisionTime": "2018-07-18T01:23:57Z"
+		},
+		{
+			"checksumSHA1": "FDXCTeCt/efH4zakfDUM/6AGL54=",
+			"path": "github.com/ugorji/go/codec",
+			"revision": "d51d2e5fca0fe87b97a71caa1cd2e01be0cc0c90",
+			"revisionTime": "2019-06-20T18:29:59Z"
+		},
+		{
+			"checksumSHA1": "ndtoQbNCephdHyFqWH5GHNAE4a0=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "c5567b49c5d04a5f83870795b8c0e2df43a8ce32",
+			"revisionTime": "2019-06-24T11:44:31Z"
+		},
+		{
+			"checksumSHA1": "P/k5ZGf0lEBgpKgkwy++F7K1PSg=",
+			"path": "gopkg.in/go-playground/validator.v8",
+			"revision": "5f1438d3fca68893a817e4a66806cea46a9e4ebf",
+			"revisionTime": "2017-07-30T05:02:35Z"
+		},
+		{
+			"checksumSHA1": "QqDq2x8XOU7IoOR98Cx1eiV5QY8=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "51d6538a90f86fe93ac480b35f37b2be17fef232",
+			"revisionTime": "2018-11-15T11:05:04Z"
+		}
+	],
+	"rootPath": "gitlab.flow.so/vvs/vvs-center/faucet"
+}
