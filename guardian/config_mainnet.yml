@@ -1,4 +1,4 @@
-# Develop Environment
+# MainNets Environment
 
 # Project Name
 project_name: guardian
@@ -18,6 +18,9 @@ mongodb_password: ${db_password}
 # MySQL Configuration
 mysql: ${user}:${password}@(${host:port})/${database}?charset=utf8mb4
 show_sql: false
+
+# Redis configuration
+redis: ${host:port}
 
 # DingTalk configuration
 ding_talk_url: ${Your DingTalk URL}

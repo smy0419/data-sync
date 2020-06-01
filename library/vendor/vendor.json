@@ -79,6 +79,12 @@
 			"revisionTime": "2019-02-18T23:22:22Z"
 		},
 		{
+			"checksumSHA1": "S/cGvOytIlquLg0tPc6GIiZS5Cs=",
+			"path": "github.com/gomodule/redigo/redis",
+			"revision": "0e4c251eb3753838bdfbeae2b378233298cf8476",
+			"revisionTime": "2020-05-10T19:02:04Z"
+		},
+		{
 			"checksumSHA1": "Aulh7C5SVOA4Jzt5eHNH6197Mbk=",
 			"path": "github.com/konsorten/go-windows-terminal-sequences",
 			"revision": "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e",
@@ -409,5 +415,5 @@
 			"revisionTime": "2018-11-15T11:05:04Z"
 		}
 	],
-	"rootPath": "gitlab.flow.so/server_provider/vvs-center/library"
+	"rootPath": "github.com/AsimovNetwork/data-sync/library"
 }

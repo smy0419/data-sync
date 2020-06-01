@@ -21,11 +21,9 @@ type TransactionCount struct {
 	TemplateTName string `bson:"template_name,omitempty" json:"template_name,omitempty"`
 }
 
-type TransactionList struct {
-	ID     primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Height int64              `bson:"height" json:"height"`
-	Key    string             `bson:"key" json:"key"`
-	TxHash string             `bson:"tx_hash" json:"tx_hash"`
-	Time   int64              `bson:"time" json:"time"`
-	Fee    []Fee              `bson:"fee" json:"fee"`
+type KeyTransaction struct {
+	// Height int64              `bson:"height" json:"height"`
+	TxHash string `json:"tx_hash"`
+	Time   int64  `json:"time"`
+	Fee    []Fee  `json:"fee"`
 }

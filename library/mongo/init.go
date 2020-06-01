@@ -15,14 +15,11 @@ const (
 	// ascan collection start
 	CollectionBlock               = "block"
 	CollectionTrading             = "trading"
-	CollectionTransaction         = "transaction"
+	CollectionTransaction         = "transaction" // Sharding
 	CollectionVirtualTransaction  = "virtual_transaction"
 	CollectionAsset               = "asset"
 	CollectionAssetIssue          = "asset_issue"
 	CollectionTransactionCount    = "transaction_count"
-	CollectionContractTransaction = "contract_transaction"
-	CollectionAddressTransaction  = "address_transaction"
-	CollectionAssetTransaction    = "asset_transaction"
 	CollectionAddressAssetBalance = "address_asset_balance"
 	// ascan collection end
 
@@ -72,8 +69,6 @@ func init() {
 		AuthSource:    common.Cfg.MongodbDB,
 		Username:      common.Cfg.MongodbUser,
 		Password:      common.Cfg.MongodbPassword})
-	// TODO 设置连接池大小
-	// clientOptions.SetMaxPoolSize(5)
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -104,16 +99,9 @@ func init() {
 	ensureIndex(CollectionTrading, bsonx.Doc{{Key: "time", Value: bsonx.Int32(1)}, {Key: "asset", Value: bsonx.Int32(1)}}, false)
 	// CollectionTrading Index
 
+	//  cannot create unique index over { hash: 1 } with shard key pattern { height: "hashed" }
+	ensureIndex(CollectionTransaction, bsonx.Doc{{Key: "hash", Value: bsonx.Int32(1)}}, false)
 	// CollectionTransaction Index
-	ensureIndex(CollectionTransaction, bsonx.Doc{{Key: "height", Value: bsonx.Int32(1)}}, false)
-	ensureIndex(CollectionTransaction, bsonx.Doc{{Key: "hash", Value: bsonx.Int32(1)}}, true)
-	// CollectionTransaction Index
-
-	// Collection Address Transaction Index
-	ensureIndex(CollectionContractTransaction, bsonx.Doc{{Key: "key", Value: bsonx.Int32(1)}}, false)
-	ensureIndex(CollectionAddressTransaction, bsonx.Doc{{Key: "key", Value: bsonx.Int32(1)}}, false)
-	ensureIndex(CollectionAssetTransaction, bsonx.Doc{{Key: "key", Value: bsonx.Int32(1)}}, false)
-	// Collection Address Transaction Index
 
 	// Collection Asset Index
 	ensureIndex(CollectionAsset, bsonx.Doc{{Key: "asset", Value: bsonx.Int32(1)}}, true)
@@ -124,9 +112,7 @@ func init() {
 	// Validator Index
 	ensureIndex(CollectionValidator, bsonx.Doc{{Key: "address", Value: bsonx.Int32(1)}}, true)
 	ensureIndex(CollectionBtcMiner, bsonx.Doc{{Key: "address", Value: bsonx.Int32(1)}}, true)
-	// TODO 考虑是否需要btc_miner_address+bind
 	ensureIndex(CollectionValidatorRelation, bsonx.Doc{{Key: "btc_miner_address", Value: bsonx.Int32(1)}}, false)
-	//  TODO 考虑是否需要address+bind
 	ensureIndex(CollectionValidatorRelation, bsonx.Doc{{Key: "address", Value: bsonx.Int32(1)}}, false)
 	ensureIndex(CollectionEarning, bsonx.Doc{{Key: "address", Value: bsonx.Int32(1)}, {Key: "time", Value: bsonx.Int32(-1)}}, false)
 	ensureIndex(CollectionEarningAsset, bsonx.Doc{{Key: "asset", Value: bsonx.Int32(1)}}, false)
@@ -171,7 +157,6 @@ func init() {
 }
 
 func ensureIndex(collection string, keys bsonx.Doc, unique bool) {
-	// keys := bsonx.Doc{{Key: key, Value: bsonx.Int32(1)}}
 	index := mongo.IndexModel{}
 	index.Keys = keys
 	if unique {

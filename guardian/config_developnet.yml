@@ -19,6 +19,9 @@ mongodb_password: ${db_password}
 mysql: ${user}:${password}@(${host:port})/${database}?charset=utf8mb4
 show_sql: false
 
+# Redis configuration
+redis: ${host:port}
+
 # DingTalk configuration
 ding_talk_url: ${Your DingTalk URL}
 ding_talk_secret: ${Your DingTalk Secret Key}

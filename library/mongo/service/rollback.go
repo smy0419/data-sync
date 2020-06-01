@@ -17,6 +17,8 @@ import (
 
 type RollbackService struct{}
 
+var transactionService = TransactionService{}
+
 func (rollbackService RollbackService) Rollback(height int64) error {
 	// Get all collections
 	collections, err := mongo.MongoDB.ListCollectionNames(context.TODO(), bson.M{})
@@ -30,6 +32,16 @@ func (rollbackService RollbackService) Rollback(height int64) error {
 	}
 
 	err = rollbackTxCount(height)
+	if err != nil {
+		return err
+	}
+
+	err = rollbackTxCountCache(height)
+	if err != nil {
+		return err
+	}
+
+	err = rollbackTransactionHeightCache(height)
 	if err != nil {
 		return err
 	}
@@ -374,4 +386,25 @@ func rollbackAddressAssetBalance(height int64) error {
 	}
 
 	return nil
+}
+
+func rollbackTxCountCache(height int64) error {
+	rollbackTxCount, err := blockService.CountTransaction(height)
+	if err != nil {
+		return err
+	}
+	return transactionCacheService.RollbackTxCount(0 - rollbackTxCount)
+}
+
+func rollbackTransactionHeightCache(height int64) error {
+	transactions, err := transactionService.GetTransactionsGreaterThanHeight(height)
+	if err != nil {
+		return err
+	}
+	txHash := make([]interface{}, 0)
+	for _, v := range transactions {
+		txHash = append(txHash, v.Hash)
+	}
+
+	return transactionCacheService.RollbackTransactionHeight(txHash)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/AsimovNetwork/data-sync/library/common"
 	"github.com/AsimovNetwork/data-sync/library/mongo"
 	"github.com/AsimovNetwork/data-sync/library/mongo/model"
+	redisService "github.com/AsimovNetwork/data-sync/library/redis/service"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -13,6 +14,7 @@ type EcologyService struct{}
 
 var contractService = ContractService{}
 var transactionStatisticsService = TransactionStatisticsService{}
+var keyTransactionService = redisService.KeyTransactionService{}
 
 func (ecologyService EcologyService) Analyze(block rpcjson.GetBlockVerboseResult) error {
 	err := recordAddress(block.Height, block.RawTx)
@@ -34,17 +36,17 @@ func (ecologyService EcologyService) Analyze(block rpcjson.GetBlockVerboseResult
 }
 
 func recordAddress(height int64, rawTx []rpcjson.TxResult) error {
-	addresses := make([]string, 0)
-	addressTransactionSlice := make([]interface{}, 0)
+	// addresses := make([]string, 0)
+	// addressTransactionSlice := make([]interface{}, 0)
 	transactionTxCountSlice := make([]model.TransactionCount, 0)
-	addressTransactionMap := make(map[string]model.TransactionList)
+	addressTransactionMap := make(map[string]model.KeyTransaction)
 
 	for _, tx := range rawTx {
 		for _, vin := range tx.Vin {
 			if vin.PrevOut != nil {
 				for _, address := range vin.PrevOut.Addresses {
 					if address[:4] == common.CitizenPrefix {
-						if _, ok := addressTransactionMap[address]; !ok {
+						if _, ok := addressTransactionMap[address + "_" + tx.Hash]; !ok {
 							feeSlice := make([]model.Fee, 0)
 							for _, v := range tx.Fee {
 								tmp := model.Fee{
@@ -53,9 +55,8 @@ func recordAddress(height int64, rawTx []rpcjson.TxResult) error {
 								}
 								feeSlice = append(feeSlice, tmp)
 							}
-							addressTransactionMap[address] = model.TransactionList{
-								Height: height,
-								Key:    address,
+							addressTransactionMap[address + "_" + tx.Hash] = model.KeyTransaction{
+								// Height: height,
 								TxHash: tx.Hash,
 								Time:   tx.Time,
 								Fee:    feeSlice,
@@ -75,7 +76,7 @@ func recordAddress(height int64, rawTx []rpcjson.TxResult) error {
 		for _, vout := range tx.Vout {
 			for _, address := range vout.ScriptPubKey.Addresses {
 				if address[:4] == common.CitizenPrefix {
-					if _, ok := addressTransactionMap[address]; !ok {
+					if _, ok := addressTransactionMap[address + "_" + tx.Hash]; !ok {
 						feeSlice := make([]model.Fee, 0)
 						for _, v := range tx.Fee {
 							tmp := model.Fee{
@@ -84,9 +85,8 @@ func recordAddress(height int64, rawTx []rpcjson.TxResult) error {
 							}
 							feeSlice = append(feeSlice, tmp)
 						}
-						addressTransactionMap[address] = model.TransactionList{
-							Height: height,
-							Key:    address,
+						addressTransactionMap[address + "_" + tx.Hash] = model.KeyTransaction{
+							// Height: height,
 							TxHash: tx.Hash,
 							Time:   tx.Time,
 							Fee:    feeSlice,
@@ -103,17 +103,22 @@ func recordAddress(height int64, rawTx []rpcjson.TxResult) error {
 		}
 	}
 
-	for k, v := range addressTransactionMap {
-		addresses = append(addresses, k)
-		addressTransactionSlice = append(addressTransactionSlice, v)
-	}
+	// for k, v := range addressTransactionMap {
+	// 	addresses = append(addresses, k)
+	// 	addressTransactionSlice = append(addressTransactionSlice, v)
+	// }
 
 	err := transactionStatisticsService.InsertOrUpdate(model.CountAddress, transactionTxCountSlice)
 	if err != nil {
 		return err
 	}
 
-	err = transactionStatisticsService.Record(mongo.CollectionAddressTransaction, addressTransactionSlice)
+	// err = transactionStatisticsService.Record(mongo.CollectionAddressTransaction, addressTransactionSlice)
+	// if err != nil {
+	// 	return err
+	// }
+	
+	err = keyTransactionService.Record(addressTransactionMap)
 	if err != nil {
 		return err
 	}
@@ -122,10 +127,10 @@ func recordAddress(height int64, rawTx []rpcjson.TxResult) error {
 }
 
 func recordContract(height int64, receipts []*rpcjson.ReceiptResult, txs []rpcjson.TxResult) error {
-	addresses := make([]string, 0)
-	contractTransactionSlice := make([]interface{}, 0)
+	// addresses := make([]string, 0)
+	// contractTransactionSlice := make([]interface{}, 0)
 	transactionTxCountSlice := make([]model.TransactionCount, 0)
-	contractTransactionMap := make(map[string]model.TransactionList)
+	contractTransactionMap := make(map[string]model.KeyTransaction)
 	for _, receipt := range receipts {
 		if len(receipt.ContractAddress) > 0 && receipt.ContractAddress != common.EmptyContract {
 			var creator string
@@ -141,9 +146,8 @@ func recordContract(height int64, receipts []*rpcjson.ReceiptResult, txs []rpcjs
 						}
 						feeSlice = append(feeSlice, tmp)
 					}
-					contractTransactionMap[receipt.ContractAddress] = model.TransactionList{
-						Height: height,
-						Key:    receipt.ContractAddress,
+					contractTransactionMap[receipt.ContractAddress + "_" + tx.Hash] = model.KeyTransaction{
+						// Height: height,
 						TxHash: tx.Hash,
 						Time:   tx.Time,
 						Fee:    feeSlice,
@@ -179,7 +183,7 @@ func recordContract(height int64, receipts []*rpcjson.ReceiptResult, txs []rpcjs
 			for _, address := range vout.ScriptPubKey.Addresses {
 				if address[:4] == common.ContractPrefix {
 					if _, ok := common.SystemContractAddressMap[address]; !ok {
-						if _, ok := contractTransactionMap[address]; !ok {
+						if _, ok := contractTransactionMap[address + "_" + tx.Hash]; !ok {
 							feeSlice := make([]model.Fee, 0)
 							for _, v := range tx.Fee {
 								tmp := model.Fee{
@@ -188,9 +192,8 @@ func recordContract(height int64, receipts []*rpcjson.ReceiptResult, txs []rpcjs
 								}
 								feeSlice = append(feeSlice, tmp)
 							}
-							contractTransactionMap[address] = model.TransactionList{
-								Height: height,
-								Key:    address,
+							contractTransactionMap[address + "_" + tx.Hash] = model.KeyTransaction{
+								// Height: height,
 								TxHash: tx.Hash,
 								Time:   tx.Time,
 								Fee:    feeSlice,
@@ -207,20 +210,26 @@ func recordContract(height int64, receipts []*rpcjson.ReceiptResult, txs []rpcjs
 			}
 		}
 	}
-	for k, v := range contractTransactionMap {
-		addresses = append(addresses, k)
-		contractTransactionSlice = append(contractTransactionSlice, v)
-	}
+	// for k, v := range contractTransactionMap {
+	// 	addresses = append(addresses, k)
+	// 	contractTransactionSlice = append(contractTransactionSlice, v)
+	// }
 
 	err := transactionStatisticsService.InsertOrUpdate(model.CountContract, transactionTxCountSlice)
 	if err != nil {
 		return err
 	}
 
-	err = transactionStatisticsService.Record(mongo.CollectionContractTransaction, contractTransactionSlice)
+	// err = transactionStatisticsService.Record(mongo.CollectionContractTransaction, contractTransactionSlice)
+	// if err != nil {
+	// 	return err
+	// }
+	
+	err = keyTransactionService.Record(contractTransactionMap)
 	if err != nil {
 		return err
 	}
+	
 	return nil
 }
 

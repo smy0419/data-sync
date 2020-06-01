@@ -8,9 +8,13 @@ import (
 	"github.com/AsimovNetwork/data-sync/library/common"
 	"github.com/AsimovNetwork/data-sync/library/mongo"
 	"github.com/AsimovNetwork/data-sync/library/mongo/model"
+	redisService "github.com/AsimovNetwork/data-sync/library/redis/service"
+	"go.mongodb.org/mongo-driver/bson"
+	"reflect"
 )
 
 var addressAssetBalanceService = AddressAssetBalanceService{}
+var transactionCacheService = redisService.TransactionCacheService{}
 
 type TransactionService struct{}
 
@@ -22,7 +26,7 @@ func (transactionService TransactionService) Insert(blockHash string, height int
 		transactions = append(transactions, &transaction)
 		addressAssetBalances = append(addressAssetBalances, addressAssetBalanceSlice...)
 	}
-	
+
 	virtualTransactions := make([]interface{}, 0)
 	for i, tx := range vTx {
 		transaction, addressAssetBalanceSlice := assemble(blockHash, height, tx, i)
@@ -34,20 +38,25 @@ func (transactionService TransactionService) Insert(blockHash string, height int
 	if err != nil {
 		return err
 	}
-	
+
+	err = transactionCacheService.CacheTransaction(transactions)
+	if err != nil {
+		return err
+	}
+
 	if len(virtualTransactions) > 0 {
 		_, err = mongo.MongoDB.Collection(mongo.CollectionVirtualTransaction).InsertMany(context.TODO(), virtualTransactions)
 		if err != nil {
 			return err
 		}
 	}
-	
+
 	err = addressAssetBalanceService.InsertOrUpdate(height, addressAssetBalances)
 	if err != nil {
 		return err
 	}
-	
-	assetTransactionSlice := make([]interface{}, 0)
+
+	assetTransactionMap := make(map[string]model.KeyTransaction)
 	transactionTxCountSlice := make([]model.TransactionCount, 0)
 	for _, tx := range rawTx {
 		vinAssets := make([]string, 0)
@@ -66,14 +75,21 @@ func (transactionService TransactionService) Insert(blockHash string, height int
 				}
 				feeSlice = append(feeSlice, tmp)
 			}
-			assetTransactionSlice = append(assetTransactionSlice, model.TransactionList{
-				Height: height,
-				Key:    asset,
+
+			assetTransactionMap[asset+"_"+tx.Hash] = model.KeyTransaction{
+				// Height: height,
 				TxHash: tx.Hash,
 				Time:   tx.Time,
 				Fee:    feeSlice,
-			})
-			
+			}
+			// assetTransactionSlice = append(assetTransactionSlice, model.TransactionList{
+			// 	Height: height,
+			// 	Key:    asset,
+			// 	TxHash: tx.Hash,
+			// 	Time:   tx.Time,
+			// 	Fee:    feeSlice,
+			// })
+
 			transactionTxCount := model.TransactionCount{
 				Key:      asset,
 				Category: model.CountAsset,
@@ -81,24 +97,30 @@ func (transactionService TransactionService) Insert(blockHash string, height int
 			transactionTxCountSlice = append(transactionTxCountSlice, transactionTxCount)
 		}
 	}
-	
+
 	err = transactionStatisticsService.InsertOrUpdate(model.CountAsset, transactionTxCountSlice)
 	if err != nil {
 		return err
 	}
-	
-	err = transactionStatisticsService.Record(mongo.CollectionAssetTransaction, assetTransactionSlice)
+
+	// err = transactionStatisticsService.Record(mongo.CollectionAssetTransaction, assetTransactionSlice)
+	// if err != nil {
+	// 	return err
+	// }
+
+	err = keyTransactionService.Record(assetTransactionMap)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func assemble(blockHash string, height int64, tx rpcjson.TxResult, txIndex int) (model.Transaction, []model.AddressAssetBalance) {
 	addressAssetBalanceSlice := make([]model.AddressAssetBalance, 0)
 	transaction := model.Transaction{
-		BlockHash:     blockHash,
-		Height:        height,
+		BlockHash: blockHash,
+		Height:    height,
 		// Hex:           tx.Hex,
 		Hash:          tx.Hash,
 		Size:          tx.Size,
@@ -108,7 +130,7 @@ func assemble(blockHash string, height int64, tx rpcjson.TxResult, txIndex int) 
 		Time:          tx.Time,
 		GasLimit:      tx.GasLimit,
 	}
-	
+
 	feeSlice := make([]model.Fee, 0)
 	for _, v := range tx.Fee {
 		tmp := model.Fee{
@@ -118,7 +140,7 @@ func assemble(blockHash string, height int64, tx rpcjson.TxResult, txIndex int) 
 		feeSlice = append(feeSlice, tmp)
 	}
 	transaction.Fee = feeSlice
-	
+
 	// Vin
 	vins := make([]model.Vin, 0)
 	for i := 0; i < len(tx.Vin); i++ {
@@ -141,14 +163,14 @@ func assemble(blockHash string, height int64, tx rpcjson.TxResult, txIndex int) 
 				addressAssetBalanceSlice = append(addressAssetBalanceSlice, addressAssetBalance)
 			}
 		}
-		
+
 		vin := model.Vin{
 			// TxHash:   tx.Hash,
 			Sequence: v.Sequence,
 			// Height:   height,
 			// Time:     tx.Time,
 		}
-		
+
 		if v.Coinbase != "" {
 			// coin base transaction
 			vin.CoinBase = v.Coinbase
@@ -170,7 +192,7 @@ func assemble(blockHash string, height int64, tx rpcjson.TxResult, txIndex int) 
 		}
 		vins = append(vins, vin)
 	}
-	
+
 	// VOut
 	vouts := make([]model.Vout, 0)
 	for i := 0; i < len(tx.Vout); i++ {
@@ -191,7 +213,7 @@ func assemble(blockHash string, height int64, tx rpcjson.TxResult, txIndex int) 
 			}
 			addressAssetBalanceSlice = append(addressAssetBalanceSlice, addressAssetBalance)
 		}
-		
+
 		scriptPubKey := model.ScriptPubKey{
 			Asm: v.ScriptPubKey.Asm,
 			// Hex:       v.ScriptPubKey.Hex,
@@ -211,8 +233,17 @@ func assemble(blockHash string, height int64, tx rpcjson.TxResult, txIndex int) 
 		}
 		vouts = append(vouts, vout)
 	}
-	
+
 	transaction.Vin = vins
 	transaction.Vout = vouts
 	return transaction, addressAssetBalanceSlice
+}
+
+func (transactionService TransactionService) GetTransactionsGreaterThanHeight(height int64) ([]*model.Transaction, error) {
+	filter := bson.M{
+		"height": bson.M{"$gt": height},
+	}
+
+	transactions, err := mongo.Find(mongo.CollectionTransaction, filter, reflect.TypeOf(model.Transaction{}), reflect.TypeOf(&model.Transaction{}))
+	return transactions.([]*model.Transaction), err
 }

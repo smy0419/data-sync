@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/AsimovNetwork/asimov/rpcs/rpcjson"
 	"github.com/AsimovNetwork/data-sync/library/common"
 	"github.com/AsimovNetwork/data-sync/library/mongo"
@@ -10,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"reflect"
 )
 
 type BlockService struct{}
@@ -133,4 +135,18 @@ func (blockService BlockService) GetBlockByHeight(height int64) (*model.Block, e
 	filter := bson.M{"height": height}
 	err := mongo.FindOne(mongo.CollectionBlock, filter, &result)
 	return &result, err
+}
+
+func (blockService BlockService) CountTransaction(height int64) (int64, error) {
+	command := `[
+    {
+      "$match": {"height": {"$gt" : %d}}
+    },
+    {
+      "$group": {"_id": null, "total": {"$sum": "$tx_count"}}
+    }
+  ]`
+	command = fmt.Sprintf(command, height)
+	txCount, err := mongo.Sum(mongo.CollectionBlock, []byte(command), reflect.TypeOf(*new(int64)))
+	return txCount.(int64), err
 }

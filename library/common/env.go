@@ -31,6 +31,7 @@ type config struct {
 	DingTalkUrl      string   `yaml:"ding_talk_url"`
 	DingTalkSecret   string   `yaml:"ding_talk_secret"`
 	AtMobiles        []string `yaml:"at_mobiles"`
+	Redis            string   `yaml:"redis"`
 }
 
 var Cfg config

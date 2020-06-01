@@ -5,11 +5,8 @@ import (
 	"github.com/AsimovNetwork/data-sync/library/common"
 	"github.com/AsimovNetwork/data-sync/library/mongo"
 	"github.com/AsimovNetwork/data-sync/library/mongo/model"
-	"github.com/AsimovNetwork/data-sync/library/response"
 	"go.mongodb.org/mongo-driver/bson"
 	mongoDriver "go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"reflect"
 )
 
 type TransactionStatisticsService struct{}
@@ -27,49 +24,6 @@ func (transactionStatisticsService TransactionStatisticsService) Record(collecti
 	if err != nil {
 		common.Logger.Errorf("insert %s error. err: %s", collection, err)
 		return err
-	}
-	return nil
-}
-
-func (transactionStatisticsService TransactionStatisticsService) Drop(collection string, category uint8) error {
-	txCountFilter := bson.M{
-		"tx_count": bson.M{
-			"$gt": 1000,
-		},
-		"category": category,
-	}
-	txCounts, err := mongo.Find(mongo.CollectionTransactionCount, txCountFilter, reflect.TypeOf(model.TransactionCount{}), reflect.TypeOf(&model.TransactionCount{}))
-	if err != nil {
-		return err
-	}
-	for _, txCount := range txCounts.([]*model.TransactionCount) {
-		contractTxFilter := bson.M{
-			"key": txCount.Key,
-		}
-		skip := int64(1000)
-		// find the 1000th record
-		findOption := options.FindOneOptions{
-			Skip: &skip,
-			Sort: bson.M{"_id": -1},
-		}
-		var result model.TransactionList
-		err := mongo.FindOne(collection, contractTxFilter, &result, &findOption)
-		if err != nil {
-			if !response.IsDataNotExistError(err) {
-				return err
-			}
-		}
-		deleteFilter := bson.M{
-			"key": txCount.Key,
-			"_id": bson.M{
-				"$lte": result.ID,
-			},
-		}
-		_, err = mongo.MongoDB.Collection(collection).DeleteMany(context.TODO(), deleteFilter)
-		if err != nil {
-			common.Logger.Errorf("delete from %s error. err: %s", collection, err)
-			return err
-		}
 	}
 	return nil
 }
