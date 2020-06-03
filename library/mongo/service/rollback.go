@@ -8,6 +8,7 @@ import (
 	"github.com/AsimovNetwork/data-sync/library/common"
 	"github.com/AsimovNetwork/data-sync/library/mongo"
 	"github.com/AsimovNetwork/data-sync/library/mongo/model"
+	"github.com/AsimovNetwork/data-sync/library/redis"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	mongoDriver "go.mongodb.org/mongo-driver/mongo"
@@ -18,11 +19,24 @@ import (
 type RollbackService struct{}
 
 var transactionService = TransactionService{}
+var redisClient = redis.RedisClient{}
 
 func (rollbackService RollbackService) Rollback(height int64) error {
 	// Get all collections
 	collections, err := mongo.MongoDB.ListCollectionNames(context.TODO(), bson.M{})
 	if err != nil {
+		return err
+	}
+
+	if (common.Cfg.Env == common.ENV_DEVELOP_NET || common.Cfg.Env == common.ENV_TEST_NET) && height <= 0 {
+		for _, v := range collections {
+			_, err = mongo.MongoDB.Collection(v).DeleteMany(context.TODO(), bson.M{})
+			if err != nil {
+				common.Logger.Errorf("delete from %s error. err: %s", v, err)
+				return err
+			}
+		}
+		err := redisClient.FlushAll()
 		return err
 	}
 

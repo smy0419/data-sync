@@ -97,3 +97,11 @@ func (redisClient RedisClient) Increase(key string, delta interface{}) error {
 	_, err := conn.Do("INCRBY", key, delta)
 	return err
 }
+
+func (redisClient RedisClient) FlushAll() error {
+	conn := redisPool.Get()
+	defer conn.Close()
+
+	_, err := conn.Do("FLUSHALL")
+	return err
+}
