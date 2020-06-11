@@ -7,6 +7,7 @@ import (
 	"github.com/AsimovNetwork/data-sync/library/mongo"
 	"github.com/AsimovNetwork/data-sync/library/mongo/model"
 	"github.com/AsimovNetwork/data-sync/library/mysql/constant"
+	"github.com/AsimovNetwork/data-sync/library/response"
 	"gopkg.in/mgo.v2/bson"
 	"reflect"
 )
@@ -104,6 +105,9 @@ func (daoTodoListService DaoTodoListService) Release(height int64, contractAddre
 
 	err := mongo.FindOne(mongo.CollectionDaoTodoList, filter, &todo)
 	if err != nil {
+		if response.IsDataNotExistError(err) {
+			return nil
+		}
 		return err
 	}
 
